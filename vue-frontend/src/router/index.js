@@ -15,7 +15,8 @@ export default new Router({
     {
       path: "/counter",
       name: "Counter",
-      component: Counter
+      component: Counter,
+      props: {count: 0}
     }
   ] // Add a new route here in Part 2
 });
