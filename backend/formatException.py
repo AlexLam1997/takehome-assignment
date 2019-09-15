@@ -1,0 +1,2 @@
+class formatException(Exception):
+    pass

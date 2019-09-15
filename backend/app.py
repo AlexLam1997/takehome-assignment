@@ -3,6 +3,8 @@ from typing import Tuple
 from flask import Flask, jsonify, request, Response
 import mockdb.mockdb_interface as db
 
+from formatException import formatException
+
 app = Flask(__name__)
 
 
@@ -39,21 +41,14 @@ def create_response(
 """
 ~~~~~~~~~~~~ API ~~~~~~~~~~~~
 """
-
-
 @app.route("/")
 def hello_world():
     return create_response({"content": "hello world!"})
-
 
 @app.route("/mirror/<name>")
 def mirror(name):
     data = {"name": name}
     return create_response(data)
-
-@app.route("/shows", methods=['GET'])
-def get_all_shows():
-    return create_response({"shows": db.get('shows')})
 
 @app.route("/shows/<id>", methods=['DELETE'])
 def delete_show(id):
@@ -64,6 +59,57 @@ def delete_show(id):
 
 
 # TODO: Implement the rest of the API here!
+
+# Catch and handle all unexpected, unhandled errors
+@app.errorhandler(Exception)
+def handle_error(e):
+    return create_response(status = 500, message=str(e))
+
+# ---------------------- Part 2 ----------------------
+@app.route("/shows/<int:id>", methods=['GET'])
+def get_show(id):
+    show = db.getById("shows", id)
+    if show is None: 
+        return create_response(status=404, message="No show with this id exists")
+    return create_response({"result": show})
+
+# ---------------------- Part 3 ----------------------
+@app.route("/shows", methods= ['POST'])
+def create_show():
+    show = request.json
+    try:
+        # validate the input is correct
+        validate_show(show)
+        created_show = db.create("shows", show)
+        return create_response(data = created_show, message="Show created")
+    except formatException as formatException:
+        return create_response(status = 422, message=str(formatException))
+
+def validate_show(show):
+    if "name" not in show: 
+        raise formatException("Show name cannot be empty")
+    if "episodes_seen" not in show: 
+        raise formatException("Episode seen cannot be empty")
+
+# ---------------------- Part 4 ----------------------
+@app.route("/shows/<int:id>", methods = ['PUT'])
+def update_show(id):
+    update_request = request.json
+    update_response = db.updateById("shows", id, update_request)
+    if(update_response is None):
+        return create_response(status=404, message="Show could not be updated: does not exist")
+    return create_response(data=update_response, message="Show updated")
+
+# ---------------------- Part 6 ----------------------
+
+@app.route("/shows", methods=['GET'])
+def get_all_shows():
+    min_episodes_query = request.args.get("minEpisodes", -1 , int)
+    shows = db.get("shows")
+    # filter the list of shows 
+    filtered_shows = list(filter(lambda show: show["episodes_seen"] >= min_episodes_query, shows))
+    return create_response(data={"shows": filtered_shows}, message="Shows retrieved")
+
 
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
