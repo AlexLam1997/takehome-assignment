@@ -2,7 +2,7 @@
   <!-- PART 4: Add your code here -->
   <div style="padding:10px">
     <span> {{name}} </span>
-    <Counter count=0 v-bind:show_name="name"></Counter>
+    <Counter :count=episodes_seen :show_name="name"></Counter>
   </div>
 
 </template>

@@ -1,8 +1,8 @@
 <template>
   <div id = "counter">
     You have watched {{ counter }} episodes of "{{show_name}}"
+    <button v-on:click="counter == 0 ? 0 : counter -= 1">Minus 1</button>
     <button v-on:click="counter += 1">Add 1</button>
-    <button v-on:click="counter -= 1">Minus 1</button>
   </div>
 </template>
 
